@@ -1,0 +1,274 @@
+alias: EV Charger Smart Control (Final Robust)
+mode: restart
+description: >
+  Automatically control EV charging based on solar export and/or electricity
+  tariff, with full priority logic, stability windows, and defensive conditions.
+
+variables:
+  voltage: 240
+  min_current: 6
+  max_current: 32
+  safety_margin_amps: 1
+  charger_state: "{{ states('sensor.230211289_charger_state') }}"
+  charger_power: "{{ states('sensor.230211289_power') | float(0) * 1000 }}"
+  charger_current: "{{ states('sensor.230211289_max_current') | float(0) | round(0) }}"
+  use_solar: "{{ is_state('input_boolean.ev_solar_enable', 'on') }}"
+  use_tariff: "{{ is_state('input_boolean.ev_tariff_enable', 'on') }}"
+  export_power: "{{ states('sensor.solar_export_average') | float(0) }}"
+  tariff: "{{ states('sensor.import_tariff_rate') | float(1) }}"
+
+trigger:
+  # Solar triggers (15 min stable)
+  - trigger: numeric_state
+    entity_id: sensor.solar_export_average
+    below: -1600
+    for: "00:15:00"
+    id: solar_start
+  - trigger: numeric_state
+    entity_id: sensor.solar_export_average
+    above: 200
+    for: "00:15:00"
+    id: solar_stop
+  
+  # Tariff triggers (1 min stable to prevent rapid cycling)
+  - trigger: numeric_state
+    entity_id: sensor.import_tariff_rate
+    below: 0.12
+    for: "00:01:00"
+    id: tariff_start
+  - trigger: numeric_state
+    entity_id: sensor.import_tariff_rate
+    above: 0.12
+    for: "00:01:00"
+    id: tariff_stop
+  
+  # Charger becomes ready (standby → check if we should start)
+  - trigger: state
+    entity_id: sensor.230211289_charger_state
+    to: standby
+    id: charger_ready
+  
+  # Periodic adjustment (every 5 min)
+  - trigger: time_pattern
+    minutes: "/5"
+    id: adjust_current
+  
+  # Mode toggle triggers (immediate response)
+  - trigger: state
+    entity_id:
+      - input_boolean.ev_solar_enable
+      - input_boolean.ev_tariff_enable
+    id: adjust_current
+
+action:
+  - choose:
+      ####################################################
+      # 💲 Tariff Mode (takes priority)
+      ####################################################
+      - conditions:
+          - condition: template
+            value_template: "{{ use_tariff }}"
+        sequence:
+          - choose:
+              # Start charging on cheap tariff
+              - conditions:
+                  - condition: trigger
+                    id:
+                      - tariff_start
+                      - charger_ready
+                      - adjust_current
+                  - condition: template
+                    value_template: "{{ charger_state == 'standby' and tariff <= 0.12 }}"
+                sequence:
+                  - action: beny_wifi.start_charging
+                    data:
+                      device_id: a9d83e66ef57dc66d600495b961d94cf
+                  - action: script.set_ev_charger_max_current
+                    data:
+                      amps: 32
+                  - action: logbook.log
+                    data:
+                      name: EV Charger
+                      message: "Started charging - Tariff mode ({{ tariff }}/kWh @ 32A)"
+                  - action: input_text.set_value
+                    target:
+                      entity_id: input_text.ev_charger_last_action
+                    data:
+                      value: "Started charging - Tariff mode ({{ tariff }}/kWh @ 32A)"
+              
+              # Stop charging on expensive tariff
+              - conditions:
+                  - condition: trigger
+                    id: tariff_stop
+                  - condition: template
+                    value_template: "{{ charger_state in ['charging', 'waiting'] }}"
+                sequence:
+                  - action: beny_wifi.stop_charging
+                    data:
+                      device_id: a9d83e66ef57dc66d600495b961d94cf
+                  - action: logbook.log
+                    data:
+                      name: EV Charger
+                      message: "Stopped charging - Tariff too high ({{ tariff }}/kWh)"
+                  - action: input_text.set_value
+                    target:
+                      entity_id: input_text.ev_charger_last_action
+                    data:
+                      value: "Stopped charging - Tariff too high ({{ tariff }}/kWh)"
+              
+              # Maintain full power during cheap tariff
+              - conditions:
+                  - condition: trigger
+                    id: adjust_current
+                  - condition: template
+                    value_template: "{{ charger_state == 'charging' and tariff <= 0.12 }}"
+                sequence:
+                  - action: script.set_ev_charger_max_current
+                    data:
+                      amps: 32
+                  - action: logbook.log
+                    data:
+                      name: EV Charger
+                      message: "Adjusted current - Tariff mode (32A @ {{ tariff }}/kWh)"
+                  - action: input_text.set_value
+                    target:
+                      entity_id: input_text.ev_charger_last_action
+                    data:
+                      value: "Adjusted current - Tariff mode (32A @ {{ tariff }}/kWh)"
+              
+              # Stop if tariff mode disabled while charging (and solar mode not active)
+              - conditions:
+                  - condition: trigger
+                    id: adjust_current
+                  - condition: template
+                    value_template: "{{ not use_tariff and not use_solar and charger_state in ['charging', 'waiting'] }}"
+                sequence:
+                  - action: beny_wifi.stop_charging
+                    data:
+                      device_id: a9d83e66ef57dc66d600495b961d94cf
+                  - action: logbook.log
+                    data:
+                      name: EV Charger
+                      message: "Stopped charging - Tariff mode disabled"
+                  - action: input_text.set_value
+                    target:
+                      entity_id: input_text.ev_charger_last_action
+                    data:
+                      value: "Stopped charging - Tariff mode disabled"
+
+      ####################################################
+      # ☀️ Solar Mode (only if tariff mode disabled or inactive due to high tariff)
+      ####################################################
+      - conditions:
+          - condition: template
+            value_template: "{{ use_solar and (not use_tariff or tariff > 0.12) }}"
+        sequence:
+          - choose:
+              # Start charging on solar export
+              - conditions:
+                  - condition: trigger
+                    id:
+                      - solar_start
+                      - charger_ready
+                      - adjust_current
+                  - condition: template
+                    value_template: "{{ charger_state == 'standby' and export_power < -1600 }}"
+                sequence:
+                  - action: beny_wifi.start_charging
+                    data:
+                      device_id: a9d83e66ef57dc66d600495b961d94cf
+                  - action: logbook.log
+                    data:
+                      name: EV Charger
+                      message: "Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)"
+                  - action: input_text.set_value
+                    target:
+                      entity_id: input_text.ev_charger_last_action
+                    data:
+                      value: "Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)"
+              
+              # Stop charging on grid import
+              - conditions:
+                  - condition: trigger
+                    id: solar_stop
+                  - condition: template
+                    value_template: "{{ charger_state in ['charging', 'waiting'] }}"
+                sequence:
+                  - action: beny_wifi.stop_charging
+                    data:
+                      device_id: a9d83e66ef57dc66d600495b961d94cf
+                  - action: logbook.log
+                    data:
+                      name: EV Charger
+                      message: "Stopped charging - Solar mode ({{ export_power | round(0) }}W import)"
+                  - action: input_text.set_value
+                    target:
+                      entity_id: input_text.ev_charger_last_action
+                    data:
+                      value: "Stopped charging - Solar mode ({{ export_power | round(0) }}W import)"
+              
+              # Adjust current based on available solar
+              - conditions:
+                  - condition: trigger
+                    id: adjust_current
+                  - condition: template
+                    value_template: "{{ charger_state == 'charging' }}"
+                sequence:
+                  - variables:
+                      available_power: "{{ ((-1 * export_power) + charger_power) if export_power < 0 else charger_power }}"
+                      raw: "{{ ((available_power / voltage) - safety_margin_amps) | round(0) }}"
+                      safe_current: "{{ [min_current, [raw, max_current] | min] | max }}"
+                  - condition: template
+                    value_template: "{{ safe_current != charger_current }}"
+                  - action: script.set_ev_charger_max_current
+                    data:
+                      amps: "{{ safe_current }}"
+                  - action: logbook.log
+                    data:
+                      name: EV Charger
+                      message: "Adjusted current - Solar mode ({{ charger_current }}A → {{ safe_current }}A from {{ available_power | round(0) }}W available)"
+                  - action: input_text.set_value
+                    target:
+                      entity_id: input_text.ev_charger_last_action
+                    data:
+                      value: "Adjusted current - Solar mode ({{ charger_current }}A → {{ safe_current }}A from {{ available_power | round(0) }}W available)"
+              
+              # Stop if solar mode disabled while charging (and tariff mode not active)
+              - conditions:
+                  - condition: trigger
+                    id: adjust_current
+                  - condition: template
+                    value_template: "{{ not use_solar and not use_tariff and charger_state in ['charging', 'waiting'] }}"
+                sequence:
+                  - action: beny_wifi.stop_charging
+                    data:
+                      device_id: a9d83e66ef57dc66d600495b961d94cf
+                  - action: logbook.log
+                    data:
+                      name: EV Charger
+                      message: "Stopped charging - Solar mode disabled"
+                  - action: input_text.set_value
+                    target:
+                      entity_id: input_text.ev_charger_last_action
+                    data:
+                      value: "Stopped charging - Solar mode disabled"
+
+      ####################################################
+      # 🛑 Safety: Stop if both modes disabled
+      ####################################################
+      - conditions:
+          - condition: template
+            value_template: "{{ not use_solar and not use_tariff and charger_state == 'charging' }}"
+        sequence:
+          - action: beny_wifi.stop_charging
+            data:
+              device_id: a9d83e66ef57dc66d600495b961d94cf
+          - action: logbook.log
+            data:
+              name: EV Charger
+              message: "Stopped charging - Both modes disabled"
+          - action: input_text.set_value
+            target:
+              entity_id: input_text.ev_charger_last_action
+            data:
+              value: "Stopped charging - Both modes disabled"
