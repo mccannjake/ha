@@ -123,18 +123,21 @@ action:
                   - condition: template
                     value_template: "{{ charger_state == 'charging' and tariff <= 0.12 }}"
                 sequence:
+                  - condition: template
+                    value_template: "{{ charger_current != 32 }}"
                   - action: script.set_ev_charger_max_current
                     data:
                       amps: 32
                   - action: logbook.log
                     data:
                       name: EV Charger
-                      message: "Adjusted current - Tariff mode (32A @ {{ tariff }}/kWh)"
+                      message: "Adjusted current - Tariff mode ({{ charger_current }}A → 32A @ {{ tariff }}/kWh)"
                   - action: input_text.set_value
                     target:
                       entity_id: input_text.ev_charger_last_action
                     data:
-                      value: "Adjusted current - Tariff mode (32A @ {{ tariff }}/kWh)"
+                      value: "Adjusted current - Tariff mode ({{ charger_current }}A → 32A @ {{ tariff }}/kWh)"
+
               
               # Stop if tariff mode disabled while charging (and solar mode not active)
               - conditions:
