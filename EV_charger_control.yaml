@@ -16,6 +16,15 @@ variables:
   use_tariff: "{{ is_state('input_boolean.ev_tariff_enable', 'on') }}"
   export_power: "{{ states('sensor.solar_export_average') | float(0) }}"
   tariff: "{{ states('sensor.import_tariff_rate') | float(1) }}"
+# Considering adding a priority mode variable for future use
+#  priority_mode: >
+#    {% if use_tariff and tariff <= 0.12 %}
+#      tariff
+#    {% elif use_solar %}
+#      solar
+#    {% else %}
+#      none
+#    {% endif %}
 
 trigger:
   # Solar triggers (15 min stable)
@@ -67,7 +76,8 @@ action:
       ####################################################
       - conditions:
           - condition: template
-            value_template: "{{ use_tariff and tariff <= 0.12 }}"
+            value_template: "{{ use_tariff and tariff <= 0.12 or use_tariff and trigger.id in ['tariff_stop']}}"
+            alias: Tariff Mode Active & Tariff <= 0.12 OR Tariff Mode Active & Tariff Stop Triggered
         sequence:
           - choose:
               # Start charging on cheap tariff
@@ -144,6 +154,7 @@ action:
       - conditions:
           - condition: template
             value_template: "{{ use_solar }}"
+            alias: Solar Mode Active
         sequence:
           - choose:
               # Start charging on solar export
