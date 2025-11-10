@@ -76,7 +76,7 @@ action:
       ####################################################
       - conditions:
           - condition: template
-            value_template: "{{ use_tariff and tariff <= 0.12 or use_tariff and trigger.id in ['tariff_stop']}}"
+            value_template: "{{ use_tariff and (tariff <= 0.12 or trigger.id == 'tariff_stop') }}"
             alias: Tariff Mode Active & Tariff <= 0.12 OR Tariff Mode Active & Tariff Stop Triggered
         sequence:
           - choose:
