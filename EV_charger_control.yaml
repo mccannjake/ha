@@ -137,26 +137,6 @@ action:
                       entity_id: input_text.ev_charger_last_action
                     data:
                       value: "Adjusted current - Tariff mode ({{ charger_current }}A → 32A @ {{ tariff }}/kWh)"
-              
-              # Stop if tariff mode disabled while charging (and solar mode not active)
-              - conditions:
-                  - condition: trigger
-                    id: adjust_current
-                  - condition: template
-                    value_template: "{{ not use_tariff and not use_solar and charger_state in ['charging', 'waiting'] }}"
-                sequence:
-                  - action: beny_wifi.stop_charging
-                    data:
-                      device_id: a9d83e66ef57dc66d600495b961d94cf
-                  - action: logbook.log
-                    data:
-                      name: EV Charger
-                      message: "Stopped charging - Tariff mode disabled"
-                  - action: input_text.set_value
-                    target:
-                      entity_id: input_text.ev_charger_last_action
-                    data:
-                      value: "Stopped charging - Tariff mode disabled"
 
       ####################################################
       # ☀️ Solar Mode (runs when tariff mode not active)
@@ -234,23 +214,3 @@ action:
                       entity_id: input_text.ev_charger_last_action
                     data:
                       value: "Adjusted current - Solar mode ({{ charger_current }}A → {{ safe_current }}A from {{ available_power | round(0) }}W available)"
-              
-              # Stop if solar mode disabled while charging (and tariff mode not active)
-              - conditions:
-                  - condition: trigger
-                    id: adjust_current
-                  - condition: template
-                    value_template: "{{ not use_solar and not use_tariff and charger_state in ['charging', 'waiting'] }}"
-                sequence:
-                  - action: beny_wifi.stop_charging
-                    data:
-                      device_id: a9d83e66ef57dc66d600495b961d94cf
-                  - action: logbook.log
-                    data:
-                      name: EV Charger
-                      message: "Stopped charging - Solar mode disabled"
-                  - action: input_text.set_value
-                    target:
-                      entity_id: input_text.ev_charger_last_action
-                    data:
-                      value: "Stopped charging - Solar mode disabled"
