@@ -163,7 +163,6 @@ action:
                     id:
                       - solar_start
                       - charger_ready
-                      - adjust_current
                   - condition: template
                     value_template: "{{ charger_state == 'standby' and export_power < -1600 }}"
                 sequence:
