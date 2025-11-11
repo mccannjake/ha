@@ -131,6 +131,8 @@ action:
                       value: "Started charging - Tariff mode ({{ tariff }}/kWh @ 32A)"
               
               # Stop charging on expensive tariff
+              # Future enhancement: if solar enabled and available, switch to solar mode instead
+              # Can manually trigger with solar_start or charger_ready triggers
               - conditions:
                   - condition: trigger
                     id: tariff_stop
@@ -187,7 +189,7 @@ action:
                     id:
                       - solar_start
                   - condition: template
-                    value_template: "{{ charger_state == 'standby' and export_power < -1600 }}"
+                    value_template: "{{ charger_state == 'standby' and is_state('input_boolean.ev_solar_ready', 'on') }}"
                 sequence:
                   - action: beny_wifi.start_charging
                     data:
@@ -218,7 +220,7 @@ action:
                     id:
                       - charger_ready
                   - condition: template
-                    value_template: "{{ is_state('input_boolean.ev_solar_ready', 'on') }}"
+                    value_template: "{{ charger_state == 'standby' and is_state('input_boolean.ev_solar_ready', 'on') }}"
                 sequence:
                   - action: beny_wifi.start_charging
                     data:
