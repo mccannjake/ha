@@ -43,12 +43,10 @@ trigger:
   - trigger: numeric_state
     entity_id: sensor.import_tariff_rate
     below: 0.12
-    for: "00:01:00"
     id: tariff_start
   - trigger: numeric_state
     entity_id: sensor.import_tariff_rate
     above: 0.12
-    for: "00:01:00"
     id: tariff_stop
   
   # Charger becomes ready (standby → check if we should start)
@@ -70,6 +68,32 @@ trigger:
     id: adjust_current
 
 action:
+  - choose:
+      # Independent workflow for setting ev_solar_ready helper
+      - conditions:
+          - condition: trigger
+            id: solar_start
+        sequence:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: input_boolean.ev_solar_ready
+          - action: logbook.log
+            data:
+              name: EV Solar Ready
+              message: "Solar export conditions met. Set ev_solar_ready to true."
+
+      - conditions:
+          - condition: trigger
+            id: solar_stop
+        sequence:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.ev_solar_ready
+          - action: logbook.log
+            data:
+              name: EV Solar Ready
+              message: "Solar export conditions no longer met. Set ev_solar_ready to false."
+
   - choose:
       ####################################################
       # 💲 Tariff Mode (takes priority when tariff is cheap)
@@ -162,7 +186,6 @@ action:
                   - condition: trigger
                     id:
                       - solar_start
-                      - charger_ready
                   - condition: template
                     value_template: "{{ charger_state == 'standby' and export_power < -1600 }}"
                 sequence:
@@ -178,6 +201,47 @@ action:
                       entity_id: input_text.ev_charger_last_action
                     data:
                       value: "Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)"
+                  # ⏳ Wait briefly for sensors to stabilise, then trigger adjust_current
+                  - delay: "00:00:10"
+                  - action: automation.trigger
+                    target:
+                      entity_id: automation.ev_charger_smart_control_final_robust
+                    data:
+                      skip_condition: false
+                    variables:
+                      trigger:
+                        id: adjust_current
+
+              # Start charging on solar export when charger just became ready
+              - conditions:
+                  - condition: trigger
+                    id:
+                      - charger_ready
+                  - condition: template
+                    value_template: "{{ is_state('input_boolean.ev_solar_ready', 'on') }}"
+                sequence:
+                  - action: beny_wifi.start_charging
+                    data:
+                      device_id: a9d83e66ef57dc66d600495b961d94cf
+                  - action: logbook.log
+                    data:
+                      name: EV Charger
+                      message: "Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)"
+                  - action: input_text.set_value
+                    target:
+                      entity_id: input_text.ev_charger_last_action
+                    data:
+                      value: "Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)"
+                  # ⏳ Wait briefly for sensors to stabilise, then trigger adjust_current
+                  - delay: "00:00:10"
+                  - action: automation.trigger
+                    target:
+                      entity_id: automation.ev_charger_smart_control_final_robust
+                    data:
+                      skip_condition: false
+                    variables:
+                      trigger:
+                        id: adjust_current
               
               # Stop charging on grid import
               - conditions:
