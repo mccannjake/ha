@@ -26,7 +26,7 @@ variables:
 #      none
 #    {% endif %}
 
-trigger:
+triggers:
   # Solar triggers (15 min stable)
   - trigger: numeric_state
     entity_id: sensor.solar_export_average
@@ -67,7 +67,7 @@ trigger:
       - input_boolean.ev_tariff_enable
     id: adjust_current
 
-action:
+actions:
   - choose:
       # Independent workflow for setting ev_solar_ready helper
       - conditions:
@@ -204,15 +204,19 @@ action:
                     data:
                       value: "Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)"
                   # ⏳ Wait briefly for sensors to stabilise, then trigger adjust_current
+                  - action: input_boolean.turn_on
+                    target:
+                      entity_id: input_boolean.ev_force_adjust_current
+                  - action: logbook.log
+                    data:
+                      name: Force Adjust Current
+                      message: "Solar start - forcing adjust_current after 10s delay"
                   - delay: "00:00:10"
                   - action: automation.trigger
                     target:
-                      entity_id: automation.ev_charger_smart_control_final_robust
+                      entity_id: automation.ev_charger_smart_control
                     data:
                       skip_condition: false
-                    variables:
-                      trigger:
-                        id: adjust_current
 
               # Start charging on solar export when charger just became ready
               - conditions:
@@ -235,15 +239,19 @@ action:
                     data:
                       value: "Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)"
                   # ⏳ Wait briefly for sensors to stabilise, then trigger adjust_current
+                  - action: input_boolean.turn_on
+                    target:
+                      entity_id: input_boolean.ev_force_adjust_current
+                  - action: logbook.log
+                    data:
+                      name: Force Adjust Current
+                      message: "Charger became ready - forcing adjust_current after 10s delay"
                   - delay: "00:00:10"
                   - action: automation.trigger
                     target:
-                      entity_id: automation.ev_charger_smart_control_final_robust
+                      entity_id: automation.ev_charger_smart_control
                     data:
                       skip_condition: false
-                    variables:
-                      trigger:
-                        id: adjust_current
               
               # Stop charging on grid import
               - conditions:
@@ -267,11 +275,15 @@ action:
               
               # Adjust current based on available solar
               - conditions:
-                  - condition: trigger
-                    id: adjust_current
+                  - condition: template
+                    value_template: >
+                      {{ trigger.id == 'adjust_current' or is_state('input_boolean.ev_force_adjust_current', 'on') }}
                   - condition: template
                     value_template: "{{ charger_state == 'charging' }}"
                 sequence:
+                  - action: input_boolean.turn_off
+                    target:
+                      entity_id: input_boolean.ev_force_adjust_current
                   - variables:
                       available_power: "{{ ((-1 * export_power) + charger_power) if export_power < 0 else charger_power }}"
                       raw: "{{ ((available_power / voltage) - safety_margin_amps) | round(0) }}"
@@ -290,3 +302,6 @@ action:
                       entity_id: input_text.ev_charger_last_action
                     data:
                       value: "Adjusted current - Solar mode ({{ charger_current }}A → {{ safe_current }}A from {{ available_power | round(0) }}W available)"
+                  - action: input_boolean.turn_off
+                    target:
+                      entity_id: input_boolean.ev_force_adjust_current
