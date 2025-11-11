@@ -1,0 +1,52 @@
+template:
+  - trigger:
+      # Solar export/import hysteresis
+      - platform: numeric_state
+        entity_id: sensor.solar_export_average
+        below: -1600
+        for: "00:15:00"
+      - platform: numeric_state
+        entity_id: sensor.solar_export_average
+        above: 200
+        for: "00:15:00"
+      - platform: state
+        entity_id: sensor.solar_export_average
+      # Tariff thresholds
+      - platform: numeric_state
+        entity_id: sensor.import_tariff_rate
+        below: 0.12
+        for: "00:00:00"
+      - platform: numeric_state
+        entity_id: sensor.import_tariff_rate
+        above: 0.12
+        for: "00:00:00"
+      - platform: state
+        entity_id: sensor.import_tariff_rate
+
+    sensor:
+      - name: "EV Charger Condition"
+        unique_id: ev_charger_condition
+        state: >
+          {% set export = states('sensor.solar_export_average') | float(0) %}
+          {% set tariff = states('sensor.import_tariff_rate') | float(1) %}
+          {% set last = this.state if this.state not in ['unknown','unavailable'] else 'neutral' %}
+
+          {% if tariff <= 0.12 %}
+            tariff
+          {% elif export < -1600 %}
+            export
+          {% elif export > 200 %}
+            import
+          {% else %}
+            {{ last }}
+          {% endif %}
+        icon: >
+          {% if is_state(this.entity_id, 'tariff') %}
+            mdi:currency-usd
+          {% elif is_state(this.entity_id, 'export') %}
+            mdi:solar-power
+          {% elif is_state(this.entity_id, 'import') %}
+            mdi:transmission-tower-import
+          {% else %}
+            mdi:power-sleep
+          {% endif %}
