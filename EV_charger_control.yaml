@@ -134,18 +134,38 @@ actions:
                   - condition: template
                     value_template: "{{ charger_state in ['charging', 'waiting'] }}"
                 sequence:
-                  - action: beny_wifi.stop_charging
-                    data:
-                      device_id: a9d83e66ef57dc66d600495b961d94cf
-                  - action: logbook.log
-                    data:
-                      name: EV Charger
-                      message: "Stopped charging - Tariff too high ({{ tariff }}/kWh)"
-                  - action: input_text.set_value
-                    target:
-                      entity_id: input_text.ev_charger_last_action
-                    data:
-                      value: "Stopped charging - Tariff too high ({{ tariff }}/kWh)"
+                  - choose:
+                      # Switch to solar mode if solar is ready
+                      - conditions:
+                          - condition: state
+                            entity_id: input_boolean.ev_solar_ready
+                            state: "on"
+                        sequence:
+                          - action: script.calculate_ev_charger_current_from_solar
+                            data: {}
+                          - action: logbook.log
+                            data:
+                              name: EV Charger
+                              message: "Switched from Tariff to Solar mode ({{ tariff }}/kWh → solar)"
+                          - action: input_text.set_value
+                            target:
+                              entity_id: input_text.ev_charger_last_action
+                            data:
+                              value: "Switched from Tariff to Solar mode ({{ tariff }}/kWh → solar)"
+                    # Default: Stop charging if no solar available
+                    default:
+                      - action: beny_wifi.stop_charging
+                        data:
+                          device_id: a9d83e66ef57dc66d600495b961d94cf
+                      - action: logbook.log
+                        data:
+                          name: EV Charger
+                          message: "Stopped charging - Tariff too high ({{ tariff }}/kWh)"
+                      - action: input_text.set_value
+                        target:
+                          entity_id: input_text.ev_charger_last_action
+                        data:
+                          value: "Stopped charging - Tariff too high ({{ tariff }}/kWh)"
               
               # Maintain full power during cheap tariff
               - conditions:
