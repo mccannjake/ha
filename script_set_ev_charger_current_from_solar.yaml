@@ -1,0 +1,40 @@
+alias: Calculate EV Charger Current from Solar
+description: >
+  Calculates the safe charging current based on available solar power.
+  Returns the calculated current and sets it on the charger if different from current setting.
+
+variables:
+  voltage: 240
+  min_current: 6
+  max_current: 32
+  safety_margin_amps: 1
+  charger_power: "{{ states('sensor.230211289_power') | float(0) * 1000 }}"
+  charger_current: "{{ states('sensor.230211289_max_current') | float(0) | round(0) }}"
+  export_power: "{{ states('sensor.solar_export_average') | float(0) }}"
+
+sequence:
+  - variables:
+      available_power: "{{ ((-1 * export_power) + charger_power) if export_power < 0 else charger_power }}"
+      raw: "{{ ((available_power / voltage) - safety_margin_amps) | round(0) }}"
+      safe_current: "{{ [min_current, [raw, max_current] | min] | max }}"
+  
+  - condition: template
+    value_template: "{{ safe_current != charger_current }}"
+  
+  - action: script.set_ev_charger_max_current
+    data:
+      amps: "{{ safe_current }}"
+  
+  - action: logbook.log
+    data:
+      name: EV Charger
+      message: "Adjusted current - Solar mode ({{ charger_current }}A → {{ safe_current }}A from {{ available_power | round(0) }}W available)"
+  
+  - action: input_text.set_value
+    target:
+      entity_id: input_text.ev_charger_last_action
+    data:
+      value: "Adjusted current - Solar mode ({{ charger_current }}A → {{ safe_current }}A from {{ available_power | round(0) }}W available)"
+
+mode: queued
+max: 3
