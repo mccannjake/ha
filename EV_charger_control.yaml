@@ -33,7 +33,16 @@ triggers:
     above: 200
     for: "00:15:00"
     id: solar_stop
-  
+  - trigger: numeric_state
+    entity_id:
+      - sensor.solar_export_average
+    above: -1600
+    for:
+      hours: 0
+      minutes: 15
+      seconds: 0
+      milliseconds: 0
+    id: solar_stop_not_charging
   # Tariff triggers (1 min stable to prevent rapid cycling)
   - trigger: numeric_state
     entity_id: sensor.import_tariff_rate
@@ -52,7 +61,7 @@ triggers:
   
   # Periodic adjustment (every 5 min)
   - trigger: time_pattern
-    minutes: "/5"
+    minutes: /5
     id: adjust_current
   
   # Mode toggle triggers (immediate response)
@@ -88,7 +97,23 @@ actions:
             data:
               name: EV Solar Ready
               message: "Solar export conditions no longer met. Set ev_solar_ready to false."
-
+      - conditions:
+          - condition: trigger
+            id:
+              - solar_stop_not_charging
+          - condition: template
+            value_template: "{{ charger_state not in ['charging'] }}"
+        sequence:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.ev_solar_ready
+            data: {}
+          - action: logbook.log
+            data:
+              name: EV Solar Ready
+              message: >-
+                Solar export conditions no longer met while not charging. Set
+                ev_solar_ready to false.
   - choose:
       ####################################################
       # 💲 Tariff Mode (takes priority when tariff is cheap)
