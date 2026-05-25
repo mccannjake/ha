@@ -1,0 +1,1492 @@
+kiosk_mode:
+  user_settings:
+    - users:
+        - admin
+        - b
+        - c
+        - d
+      hide_header: true
+views:
+  - title: Lights
+    badges:
+      - type: entity
+        show_name: true
+        show_state: true
+        show_icon: true
+        entity: person.admin
+      - type: entity
+        show_name: true
+        show_state: true
+        show_icon: true
+        entity: person.leah
+      - type: entity
+        show_name: true
+        show_state: true
+        show_icon: true
+        entity: person.ava
+      - type: entity
+        show_name: true
+        show_state: true
+        show_icon: true
+        entity: person.ollie
+      - type: entity
+        show_name: true
+        show_state: true
+        show_icon: true
+        entity: person.willem
+    sections:
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.bedroom
+                use_accent_color: false
+                button_action:
+                  tap_action:
+                    action: navigate
+                    navigation_path: '#bedroom_light'
+                sub_button:
+                  - entity: light.bedroom
+                    show_background: true
+                    state_background: true
+                    name: ''
+                    show_name: false
+                    show_state: false
+                    show_attribute: false
+                    attribute: supported_color_modes
+                    show_last_changed: false
+                    show_last_updated: false
+                    tap_action:
+                      action: call-service
+                      target:
+                        entity_id: scene.bedroom_natural_light
+                      service: scene.turn_on
+                    icon: mdi:sun-clock
+                  - entity: light.bedroom
+                    icon: mdi:lightbulb-on-outline
+                    tap_action:
+                      action: perform-action
+                      perform_action: scene.turn_on
+                      target:
+                        entity_id: scene.bedroom_read
+                  - entity: light.bedroom
+                    icon: mdi:book-open-variant-outline
+                    tap_action:
+                      action: perform-action
+                      perform_action: scene.turn_on
+                      target:
+                        entity_id: scene.bedroom_reading
+                  - entity: light.bedroom
+                    icon: mdi:power
+                    tap_action:
+                      action: toggle
+                allow_light_slider_to_0: true
+                light_transition: false
+                hold_action:
+                  action: more-info
+                icon: mdi:bed
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.ollie_s_room
+                button_action:
+                  tap_action:
+                    action: navigate
+                    navigation_path: '#ollie_light'
+                sub_button:
+                  - entity: light.ollie_s_room
+                    icon: mdi:sun-clock
+                    tap_action:
+                      action: perform-action
+                      perform_action: scene.turn_on
+                      target:
+                        entity_id: scene.ollie_s_bedroom_natural_light
+                  - entity: light.ollie_s_room
+                    icon: mdi:lightbulb-on-outline
+                    tap_action:
+                      action: perform-action
+                      perform_action: scene.turn_on
+                      target:
+                        entity_id: scene.ollie_lamp_read
+                  - entity: light.ollie_s_room
+                    icon: mdi:power
+                    tap_action:
+                      action: toggle
+                icon: mdi:bed-single
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.hallway
+                    use_accent_color: false
+                    button_action: null
+                    sub_button:
+                      - entity: light.hallway
+                        show_background: true
+                        state_background: true
+                        name: ''
+                        show_name: false
+                        show_state: false
+                        show_attribute: false
+                        attribute: supported_color_modes
+                        show_last_changed: false
+                        show_last_updated: false
+                        tap_action:
+                          action: call-service
+                          target:
+                            entity_id: scene.hallway_natural_light
+                          service: scene.turn_on
+                        icon: mdi:sun-clock
+                      - entity: light.hallway
+                        tap_action:
+                          action: perform-action
+                          perform_action: scene.turn_on
+                          target:
+                            entity_id: scene.hallway_read
+                        icon: mdi:lightbulb-on-outline
+                      - entity: light.hallway
+                        icon: mdi:power
+                        tap_action:
+                          action: toggle
+                    icon: mdi:swap-vertical-bold
+                    scrolling_effect: false
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.lounge
+                button_action:
+                  tap_action:
+                    action: navigate
+                    navigation_path: '#lounge_light'
+                sub_button:
+                  - entity: light.lounge
+                    show_background: true
+                    state_background: true
+                    name: ''
+                    show_name: false
+                    show_state: false
+                    show_attribute: false
+                    attribute: supported_color_modes
+                    show_last_changed: false
+                    show_last_updated: false
+                    tap_action:
+                      action: call-service
+                      target:
+                        entity_id: scene.lounge_natural_light_3
+                      service: scene.turn_on
+                    icon: mdi:sun-clock
+                  - entity: light.lounge
+                    icon: mdi:lightbulb-on-outline
+                    tap_action:
+                      action: perform-action
+                      perform_action: scene.turn_on
+                      target:
+                        entity_id: scene.lounge_read
+                  - entity: light.lounge
+                    icon: mdi:power
+                    tap_action:
+                      action: toggle
+                show_state: true
+                icon: mdi:sofa
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.bathroom
+                use_accent_color: false
+                button_action: null
+                sub_button:
+                  - entity: light.bathroom
+                    show_background: true
+                    state_background: true
+                    name: ''
+                    show_name: false
+                    show_state: false
+                    show_attribute: false
+                    attribute: supported_color_modes
+                    show_last_changed: false
+                    show_last_updated: false
+                    tap_action:
+                      action: call-service
+                      target:
+                        entity_id: scene.bathroom_natural_light_2
+                      service: scene.turn_on
+                    icon: mdi:sun-clock
+                  - entity: light.bathroom
+                    tap_action:
+                      action: perform-action
+                      perform_action: scene.turn_on
+                      target:
+                        entity_id: scene.bathroom_read
+                    icon: mdi:lightbulb-on-outline
+                  - entity: light.bathroom
+                    icon: mdi:power
+                    tap_action:
+                      action: toggle
+                icon: mdi:shower
+                scrolling_effect: false
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: switch
+                    entity: switch.deck_light
+                    sub_button:
+                      - entity: switch.deck_light
+                        icon: mdi:power
+                        tap_action:
+                          action: toggle
+                    name: Outdoor
+                    button_action:
+                      tap_action:
+                        action: navigate
+                        navigation_path: '#deck_light'
+                    icon: mdi:patio-heater
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.ava_s_light_strip
+          - type: custom:bubble-card
+            card_type: pop-up
+            name: Bedroom
+            icon: mdi:bed
+            hash: '#bedroom_light'
+            button_type: name
+            button_action: {}
+            sub_button:
+              main: []
+              bottom: []
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: Lights
+                icon: mdi:lightbulb-outline
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.bedroom
+                show_state: true
+                show_last_changed: false
+                show_last_updated: false
+                show_attribute: false
+                force_icon: false
+                use_accent_color: false
+                allow_light_slider_to_0: true
+                light_transition: false
+                slider_live_update: false
+                button_action: {}
+                grid_options:
+                  columns: 12
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.bedroom_reading
+                show_state: true
+                grid_options:
+                  columns: 6
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.bedroom_fireplace
+                show_state: true
+                grid_options:
+                  columns: 6
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.extended_color_light_1
+                show_state: true
+                grid_options:
+                  columns: 6
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.extended_color_light_1_2
+                show_state: true
+                grid_options:
+                  columns: 6
+          - type: custom:bubble-card
+            card_type: pop-up
+            name: Lounge
+            icon: mdi:sofa
+            hash: '#lounge_light'
+            button_type: name
+            button_action: {}
+            sub_button:
+              main: []
+              bottom: []
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: Lights
+                icon: mdi:lightbulb-outline
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.lounge
+                show_state: true
+                show_last_changed: false
+                show_last_updated: false
+                show_attribute: false
+                force_icon: false
+                use_accent_color: false
+                allow_light_slider_to_0: true
+                light_transition: false
+                slider_live_update: false
+                button_action: {}
+                grid_options:
+                  columns: 12
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                show_state: true
+                entity: light.lounge_light
+                grid_options:
+                  columns: 12
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.color_temperature_light_1
+                show_state: true
+                grid_options:
+                  columns: 12
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.corner_light
+                sub_button:
+                  - entity: light.corner_light
+                    tap_action:
+                      action: call-service
+                      service: light.turn_on
+                      service_data:
+                        entity_id: light.corner_light
+                        hs_color:
+                          - 0
+                          - 0
+          - type: custom:bubble-card
+            card_type: pop-up
+            name: Deck / Outdoor
+            icon: mdi:patio-heater
+            hash: '#deck_light'
+            button_type: name
+            button_action: {}
+            sub_button:
+              main: []
+              bottom: []
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: Lights
+                icon: mdi:lightbulb-outline
+              - type: custom:bubble-card
+                card_type: button
+                button_type: switch
+                entity: switch.deck_light
+                sub_button: []
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.fairy_lights
+                show_state: true
+                show_last_changed: false
+                show_last_updated: false
+                show_attribute: false
+                force_icon: false
+                use_accent_color: false
+                allow_light_slider_to_0: true
+                light_transition: false
+                slider_live_update: false
+                button_action: {}
+                grid_options:
+                  columns: 12
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                show_state: true
+                entity: light.wiz_fairy_light
+                grid_options:
+                  columns: 12
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.wiz_fairy_light_2
+                show_state: true
+                grid_options:
+                  columns: 12
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.shed
+                sub_button: []
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.porch
+                show_state: true
+                show_last_changed: false
+                show_last_updated: false
+                show_attribute: false
+                force_icon: false
+                use_accent_color: false
+                allow_light_slider_to_0: true
+                light_transition: false
+                slider_live_update: false
+                button_action: {}
+                grid_options:
+                  columns: 12
+          - type: custom:bubble-card
+            card_type: pop-up
+            name: Ollies Room
+            icon: mdi:bed-single
+            hash: '#ollie_light'
+            button_type: name
+            button_action: {}
+            sub_button:
+              main: []
+              bottom: []
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: Lights
+                icon: mdi:lightbulb-outline
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.ollie_s_room
+                show_state: true
+                show_last_changed: false
+                show_last_updated: false
+                show_attribute: false
+                force_icon: false
+                use_accent_color: false
+                allow_light_slider_to_0: true
+                light_transition: false
+                slider_live_update: false
+                button_action: {}
+                grid_options:
+                  columns: 12
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                show_state: true
+                entity: light.extended_color_light_1_3
+                grid_options:
+                  columns: 12
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.extended_color_light_1_4
+                show_state: true
+                grid_options:
+                  columns: 12
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.ollie_lamp
+                sub_button: []
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.ollie_s_light_strip
+                sub_button: []
+      - type: grid
+        cards: []
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /dashboard-phone1/0
+                icon: mdi:track-light
+                label: Lighting
+              - url: /dashboard-phone1/hvac
+                icon: mdi:home-thermometer
+                label: HVAC
+                hold_action:
+                  action: navigate
+                  navigation_path: /config/devices/dashboard
+              - icon: mdi:account-music
+                label: Media
+                url: /dashboard-phone1/media
+              - icon: mdi:dots-circle
+                label: Other
+                url: /dashboard-phone1/ev
+              - icon: mdi:dots-horizontal
+                label: More
+                tap_action:
+                  action: open-popup
+                popup:
+                  - icon: mdi:cog
+                    url: /config/dashboard
+                  - icon: mdi:hammer
+                    url: /developer-tools/yaml
+                  - icon: mdi:power
+                    tap_action:
+                      action: call-service
+                      service: homeassistant.restart
+                      service_data: {}
+                      confirmation:
+                        text: Are you sure you want to restart Home Assistant?
+            mobile:
+              show_labels: true
+    type: sections
+    max_columns: 4
+    cards: []
+  - type: sections
+    max_columns: 4
+    title: HVAC
+    path: hvac
+    sections:
+      - type: grid
+        cards:
+          - type: custom:bubble-card
+            card_type: climate
+            entity: climate.kitchen
+            sub_button:
+              - name: HVAC modes menu
+                select_attribute: hvac_modes
+                state_background: false
+                show_arrow: false
+                show_name: false
+                show_last_updated: false
+                show_background: true
+                show_icon: true
+            icon: mdi:stove
+            min_temp: 18
+            max_temp: 30
+            step: 1
+            state_color: true
+            button_action: {}
+            show_state: false
+            show_last_changed: false
+            show_last_updated: false
+            show_attribute: true
+            force_icon: false
+            attribute: current_temperature
+          - type: custom:bubble-card
+            card_type: climate
+            entity: climate.bedroom
+            sub_button:
+              - name: HVAC modes menu
+                select_attribute: hvac_modes
+                state_background: false
+                show_arrow: false
+                show_name: false
+                show_last_updated: false
+                show_background: true
+                show_icon: true
+            icon: mdi:bed
+            min_temp: 18
+            max_temp: 30
+            step: 1
+            state_color: true
+            button_action: {}
+            show_state: false
+            show_last_changed: false
+            show_last_updated: false
+            show_attribute: true
+            force_icon: false
+            attribute: current_temperature
+          - type: custom:bubble-card
+            card_type: climate
+            entity: climate.ava_s_bedroom
+            sub_button:
+              - name: HVAC modes menu
+                select_attribute: hvac_modes
+                state_background: false
+                show_arrow: false
+                show_name: false
+                show_last_updated: false
+                show_background: true
+                show_icon: true
+            icon: mdi:bed-outline
+            min_temp: 18
+            max_temp: 30
+            step: 1
+            state_color: true
+            button_action: {}
+            show_state: false
+            show_last_changed: false
+            show_last_updated: false
+            show_attribute: true
+            force_icon: false
+            attribute: current_temperature
+          - type: custom:bubble-card
+            card_type: climate
+            entity: climate.ollie_s_bedroom
+            sub_button:
+              - name: HVAC modes menu
+                select_attribute: hvac_modes
+                state_background: false
+                show_arrow: false
+                show_name: false
+                show_last_updated: false
+                show_background: true
+                show_icon: true
+            icon: mdi:bed-outline
+            min_temp: 18
+            max_temp: 30
+            step: 1
+            state_color: true
+            button_action: {}
+            show_state: false
+            show_last_changed: false
+            show_last_updated: false
+            show_attribute: true
+            force_icon: false
+            attribute: current_temperature
+          - type: custom:power-flow-card-plus
+            entities:
+              battery:
+                entity: ''
+              grid:
+                entity: sensor.solarnet_power_grid
+                secondary_info: {}
+              solar:
+                entity: sensor.solarnet_power_photovoltaics
+                display_zero_state: true
+                secondary_info: {}
+                color_value: false
+                color_icon: false
+                invert_state: false
+                use_metadata: false
+              fossil_fuel_percentage:
+                attribute: Emissions
+                secondary_info: {}
+              individual:
+                - entity: sensor.230211289_power
+                  secondary_info: {}
+                  name: EV
+                  icon: mdi:car
+                  display_zero: true
+              home:
+                secondary_info: {}
+                circle_animation: true
+                subtract_individual: false
+                entity: sensor.solarnet_power_load
+            clickable_entities: true
+            display_zero_lines:
+              mode: show
+              transparency: 50
+              grey_color:
+                - 189
+                - 189
+                - 189
+            use_new_flow_rate_model: true
+            w_decimals: 0
+            kw_decimals: 2
+            min_flow_rate: 0.75
+            max_flow_rate: 6
+            max_expected_power: 5000
+            min_expected_power: 0.01
+            watt_threshold: 1000
+            transparency_zero_lines: 0
+            disable_dots: false
+            sort_individual_devices: false
+          - type: custom:bubble-card
+            card_type: button
+            button_type: slider
+            entity: sensor.230211289_power
+            name: EV Charger
+            min_value: 0
+            max_value: 7
+            step: 1
+            show_state: true
+            sub_button:
+              main:
+                - entity: sensor.byd_sealion_7_charge_remaining_hours
+                  icon: mdi:clock-outline
+                  show_state: true
+                  show_background: true
+                - entity: sensor.byd_sealion_7_charge_remaining_minutes
+                  icon: mdi:clock-outline
+                  show_state: true
+                  show_background: true
+              bottom: []
+            styles: |
+              /* JavaScript to format minutes into H:MM */
+              ${(() => {
+                const minutes = parseInt(hass.states['sensor.byd_sealion_7_charge_remaining_minutes']?.state);
+                const el = card.querySelector('.bubble-sub-button-1 .bubble-state');
+                
+                if (el && !isNaN(minutes)) {
+                  const h = Math.floor(minutes / 60);
+                  const m = String(minutes % 60).padStart(2, '0');
+                  el.textContent = h + ':' + m;
+                }
+              })()}
+            button_action:
+              tap_action:
+                action: navigate
+                navigation_path: '#ev_charger'
+          - type: custom:bubble-card
+            card_type: pop-up
+            name: EV Charger
+            icon: mdi:ev-plug-type2
+            hash: '#ev_charger'
+            button_type: name
+            button_action: {}
+            sub_button:
+              main: []
+              bottom: []
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: ''
+                icon: mdi:lightbulb-outline
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                card_layout: large-2-rows
+                entity: input_number.beny_max_current
+                show_state: true
+                show_attribute: false
+                show_icon: true
+                button_action:
+                  tap_action:
+                    action: call-service
+                    service: script.set_ev_charger_max_current
+                    service_data:
+                      amps: input_number.beny_max_current
+                slider_live_update: false
+                sub_button:
+                  - entity: sensor.230211289_charger_state
+                    show_attribute: false
+                    show_state: true
+                    show_icon: false
+                    show_background: true
+                    show_name: false
+                  - entity: sensor.230211289_temperature
+                    show_icon: false
+                    show_background: false
+                    show_state: true
+                  - entity: sensor.230211289_power
+                    show_icon: false
+                    show_state: true
+                    state_background: false
+                    show_background: false
+                    show_attribute: false
+                    attribute: unit_of_measurement
+                  - entity: sensor.230211289_total_kwh
+                    show_background: false
+                    show_state: true
+                    show_icon: false
+                  - entity: sensor.230211289_max_current
+                    show_icon: false
+                    show_state: true
+                    show_background: false
+                  - entity: sensor.230211289_current1
+                    show_background: false
+                    show_icon: false
+                    show_state: true
+                  - entity: input_number.beny_max_current
+                    tap_action:
+                      action: perform-action
+                      perform_action: beny_wifi.start_charging
+                      target: {}
+                      data:
+                        device_id: a9d83e66ef57dc66d600495b961d94cf
+                    show_background: false
+                    show_icon: true
+                    icon: mdi:play
+                    visibility:
+                      - condition: state
+                        entity: sensor.230211289_charger_state
+                        state_not: charging
+                  - entity: sensor.230211289_charger_state
+                    show_background: false
+                    icon: mdi:stop
+                    tap_action:
+                      action: perform-action
+                      perform_action: beny_wifi.stop_charging
+                      target: {}
+                      data:
+                        device_id: a9d83e66ef57dc66d600495b961d94cf
+                    visibility:
+                      - condition: state
+                        entity: sensor.230211289_charger_state
+                        state: charging
+                name: EV Charger Limit
+                icon: mdi:ev-plug-ccs2
+                attribute: unit_of_measurement
+                styles: ''
+                rows: '1'
+                grid_options:
+                  columns: 12
+              - type: custom:bubble-card
+                card_type: button
+                button_type: switch
+                entity: input_boolean.ev_solar_enable
+                show_icon: true
+                rows: '1'
+                card_layout: normal
+                grid_options:
+                  columns: 4
+              - type: custom:bubble-card
+                card_type: button
+                button_type: switch
+                entity: input_boolean.ev_tariff_enable
+                card_layout: normal
+                grid_options:
+                  columns: 4
+              - type: custom:bubble-card
+                card_type: button
+                button_type: state
+                entity: input_boolean.ev_solar_ready
+                card_layout: normal
+                grid_options:
+                  columns: 4
+              - type: vertical-stack
+                cards:
+                  - type: logbook
+                    entities:
+                      - input_text.ev_charger_last_action
+                    hours_to_show: 24
+                    title: Recent Actions History
+          - type: custom:bubble-card
+            card_type: pop-up
+            name: Sealion 7
+            icon: mdi:car-electric
+            hash: '#sealion7'
+            button_type: name
+            button_action: {}
+            sub_button:
+              main: []
+              bottom: []
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: ''
+                icon: mdi:lightning-bolt
+                sub_button:
+                  main: []
+                  bottom: []
+              - type: custom:bubble-card
+                card_type: button
+                button_type: state
+                entity: sensor.byd_sealion_7_battery_level
+                name: Sealion Status
+                show_state: true
+                sub_button:
+                  main:
+                    - entity: sensor.byd_sealion_7_range
+                      icon: mdi:map-marker-distance
+                      show_state: true
+                      show_background: true
+                    - entity: sensor.byd_sealion_7_odometer
+                      icon: mdi:counter
+                      show_state: true
+                    - entity: binary_sensor.byd_sealion_7_vehicle_on
+                      icon: mdi:car-connected
+                      show_state: true
+                      show_background: true
+                  bottom:
+                    - entity: sensor.byd_sealion_7_exterior_temperature
+                      icon: mdi:thermometer
+                      show_icon: true
+                      show_state: true
+                    - entity: sensor.byd_sealion_7_cabin_temperature
+                      icon: mdi:home-thermometer
+                      show_icon: true
+                      show_state: true
+                    - entity: lock.byd_sealion_7_lock
+                      show_icon: true
+                      show_background: true
+                      tap_action:
+                        action: toggle
+                styles: |
+                  .bubble-button-card-container {
+                    height: 120px !important;
+                    background: rgba(0,255,0,0.1);
+                  }
+                  .bubble-sub-button-container {
+                    gap: 10px !important; 
+                  }
+                  /* Target the 6th sub-button (the lock) */
+                  .bubble-sub-button-6 {
+                    /* This line forces the icon to swap */
+                    --bubble-sub-button-icon: ${hass.states['lock.byd_sealion_7_lock'].state === 'unlocked' ? 'mdi:lock-open' : 'mdi:lock'} !important;
+                    
+                    /* Background turns red when unlocked */
+                    background-color: ${hass.states['lock.byd_sealion_7_lock'].state === 'unlocked' ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.1)'} !important;
+                  }
+                  .bubble-sub-button-6 ha-icon {
+                    color: ${hass.states['lock.byd_sealion_7_lock'].state === 'unlocked' ? 'white' : 'inherit'} !important;
+                  }
+                button_action:
+                  tap_action:
+                    action: navigate
+                    navigation_path: '#sealion7'
+                rows: 1.719
+              - type: custom:bubble-card
+                card_type: climate
+                entity: climate.byd_sealion_7_climate
+                show_attribute: true
+                attribute: current_temperature
+                icon: mdi:car-connected
+                state_color: true
+                sub_button:
+                  main:
+                    - name: HVAC modes
+                      select_attribute: hvac_modes
+                      show_icon: true
+                      show_background: true
+                      sub_button_type: select
+                  bottom: []
+                min_temp: 18
+                max_temp: 28
+                step: 1
+              - type: custom:bubble-card
+                card_type: button
+                button_type: state
+                entity: select.byd_sealion_7_passenger_seat_heating
+                name: Pass Seat
+                icon: mdi:car-seat
+                show_state: true
+                sub_button:
+                  main:
+                    - entity: select.byd_sealion_7_passenger_seat_heating
+                      sub_button_type: select
+                      show_background: true
+                      show_icon: true
+                      icon: mdi:car-seat-heater
+                      show_arrow: false
+                    - entity: select.byd_sealion_7_passenger_seat_ventilation
+                      sub_button_type: select
+                      show_background: true
+                      show_icon: true
+                      icon: mdi:car-seat-cooler
+                      show_arrow: false
+                  bottom: []
+                scrolling_effect: false
+                show_icon: false
+                grid_options:
+                  columns: 6
+              - type: custom:bubble-card
+                card_type: button
+                button_type: state
+                entity: select.byd_sealion_7_driver_seat_heating
+                name: Driver Seat
+                icon: mdi:seat-recline-normal
+                show_state: true
+                sub_button:
+                  main:
+                    - entity: select.byd_sealion_7_driver_seat_heating
+                      sub_button_type: select
+                      show_background: true
+                      show_icon: true
+                      icon: mdi:car-seat-heater
+                      show_arrow: false
+                    - entity: select.byd_sealion_7_driver_seat_ventilation
+                      sub_button_type: select
+                      show_background: true
+                      show_icon: true
+                      icon: mdi:car-seat-cooler
+                      show_arrow: false
+                  bottom: []
+                scrolling_effect: false
+                show_icon: false
+                grid_options:
+                  columns: 6
+              - type: custom:bubble-card
+                card_type: button
+                button_type: switch
+                entity: lock.byd_sealion_7_lock
+                name: Vehicle Lock
+                rows: 1
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            entity: sensor.byd_sealion_7_battery_level
+            name: Sealion Status
+            show_state: true
+            sub_button:
+              main:
+                - entity: sensor.byd_sealion_7_range
+                  icon: mdi:map-marker-distance
+                  show_state: true
+                  show_background: true
+                - entity: sensor.byd_sealion_7_odometer
+                  icon: mdi:counter
+                  show_state: true
+                - entity: binary_sensor.byd_sealion_7_vehicle_on
+                  icon: mdi:car-connected
+                  show_state: true
+                  show_background: true
+              bottom:
+                - entity: sensor.byd_sealion_7_exterior_temperature
+                  icon: mdi:thermometer
+                  show_icon: true
+                  show_state: true
+                - entity: sensor.byd_sealion_7_cabin_temperature
+                  icon: mdi:home-thermometer
+                  show_icon: true
+                  show_state: true
+                - entity: lock.byd_sealion_7_lock
+                  show_icon: true
+                  show_background: true
+                  tap_action:
+                    action: toggle
+                - entity: button.byd_sealion_7_force_poll
+                  tap_action:
+                    action: toggle
+            styles: |
+              .bubble-button-card-container {
+                height: 120px !important;
+                background: rgba(0,255,0,0.1);
+              }
+              .bubble-sub-button-container {
+                gap: 10px !important; 
+              }
+              /* Target the 6th sub-button (the lock) */
+              .bubble-sub-button-6 {
+                /* This line forces the icon to swap */
+                --bubble-sub-button-icon: ${hass.states['lock.byd_sealion_7_lock'].state === 'unlocked' ? 'mdi:lock-open' : 'mdi:lock'} !important;
+                
+                /* Background turns red when unlocked */
+                background-color: ${hass.states['lock.byd_sealion_7_lock'].state === 'unlocked' ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.1)'} !important;
+              }
+              .bubble-sub-button-6 ha-icon {
+                color: ${hass.states['lock.byd_sealion_7_lock'].state === 'unlocked' ? 'white' : 'inherit'} !important;
+              }
+            button_action:
+              tap_action:
+                action: navigate
+                navigation_path: '#sealion7'
+            rows: 1.719
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /dashboard-phone1/0
+                icon: mdi:track-light
+                label: Lighting
+              - url: /dashboard-phone1/hvac
+                icon: mdi:home-thermometer
+                label: HVAC
+                hold_action:
+                  action: navigate
+                  navigation_path: /config/devices/dashboard
+              - icon: mdi:account-music
+                label: Media
+                url: /dashboard-phone1/media
+              - icon: mdi:dots-circle
+                label: Other
+                url: /dashboard-phone1/ev
+              - icon: mdi:dots-horizontal
+                label: More
+                tap_action:
+                  action: open-popup
+                popup:
+                  - icon: mdi:cog
+                    url: /config/dashboard
+                  - icon: mdi:hammer
+                    url: /developer-tools/yaml
+                  - icon: mdi:power
+                    tap_action:
+                      action: call-service
+                      service: homeassistant.restart
+                      service_data: {}
+                      confirmation:
+                        text: Are you sure you want to restart Home Assistant?
+            mobile:
+              show_labels: true
+  - type: sections
+    max_columns: 4
+    title: Media
+    path: media
+    sections:
+      - type: grid
+        cards:
+          - type: custom:spotifyplus-card
+            cardUniqueId: 7ca60346-6559-4f2e-84f0-12645565ed09
+            sections:
+              - player
+              - albumfavorites
+              - playlistfavorites
+              - recents
+              - devices
+              - searchmedia
+              - showfavorites
+            entity: media_player.spotifyplus_mccannjake
+            playerHeaderTitle: '{player.source}'
+            playerHeaderArtistTrack: '{player.media_artist} - {player.media_title}'
+            playerHeaderAlbum: '{player.media_album_name} {player.sp_playlist_name_title}'
+            playerHeaderNoMediaPlayingText: '"{player.name}" state is "{player.state}"'
+            albumFavBrowserTitle: >-
+              Album Favorites for {player.sp_user_display_name}
+              ({medialist.filteritemcount} items)
+            albumFavBrowserSubTitle: click a tile item to play the content; click-hold for actions
+            albumFavBrowserItemsPerRow: 4
+            albumFavBrowserItemsHideTitle: false
+            albumFavBrowserItemsHideSubTitle: false
+            albumFavBrowserItemsSortTitle: true
+            artistFavBrowserTitle: >-
+              Artist Favorites for {player.sp_user_display_name}
+              ({medialist.filteritemcount} items)
+            artistFavBrowserSubTitle: click a tile item to play the content; click-hold for actions
+            artistFavBrowserItemsPerRow: 4
+            artistFavBrowserItemsHideTitle: false
+            artistFavBrowserItemsHideSubTitle: true
+            artistFavBrowserItemsSortTitle: true
+            audiobookFavBrowserTitle: >-
+              Audiobook Favorites for {player.sp_user_display_name}
+              ({medialist.filteritemcount} items)
+            audiobookFavBrowserSubTitle: click a tile item to play the content; click-hold for actions
+            audiobookFavBrowserItemsPerRow: 4
+            audiobookFavBrowserItemsHideTitle: false
+            audiobookFavBrowserItemsHideSubTitle: false
+            audiobookFavBrowserItemsSortTitle: true
+            categoryBrowserTitle: >-
+              Categorys for {player.sp_user_display_name}
+              ({medialist.filteritemcount} items)
+            categoryBrowserSubTitle: click a tile item to view the content; click-hold for actions
+            categoryBrowserItemsPerRow: 4
+            categoryBrowserItemsHideTitle: false
+            categoryBrowserItemsHideSubTitle: true
+            categoryBrowserItemsSortTitle: true
+            deviceBrowserTitle: Spotify Connect Devices ({medialist.filteritemcount} items)
+            deviceBrowserSubTitle: click an item to select the device; click-hold for device info
+            deviceBrowserItemsPerRow: 1
+            deviceBrowserItemsHideTitle: false
+            deviceBrowserItemsHideSubTitle: true
+            episodeFavBrowserTitle: >-
+              Episode Favorites for {player.sp_user_display_name}
+              ({medialist.filteritemcount} items)
+            episodeFavBrowserSubTitle: click a tile item to play the content; click-hold for actions
+            episodeFavBrowserItemsPerRow: 4
+            episodeFavBrowserItemsHideTitle: false
+            episodeFavBrowserItemsHideSubTitle: false
+            episodeFavBrowserItemsSortTitle: true
+            playlistFavBrowserTitle: >-
+              Playlist Favorites for {player.sp_user_display_name}
+              ({medialist.filteritemcount} items)
+            playlistFavBrowserSubTitle: click a tile item to play the content; click-hold for actions
+            playlistFavBrowserItemsPerRow: 3
+            playlistFavBrowserItemsHideTitle: false
+            playlistFavBrowserItemsHideSubTitle: false
+            playlistFavBrowserItemsSortTitle: true
+            recentBrowserTitle: >-
+              Recently Played by {player.sp_user_display_name}
+              ({medialist.filteritemcount} items)
+            recentBrowserSubTitle: click a tile item to play the content; click-hold for actions
+            recentBrowserItemsPerRow: 4
+            recentBrowserItemsHideTitle: false
+            recentBrowserItemsHideSubTitle: false
+            searchMediaBrowserTitle: >-
+              Search Media for {player.sp_user_display_name}
+              ({medialist.filteritemcount} items)
+            searchMediaBrowserSubTitle: click a tile item to play the content; click-hold for actions
+            searchMediaBrowserUseDisplaySettings: false
+            searchMediaBrowserItemsPerRow: 4
+            searchMediaBrowserItemsHideTitle: false
+            searchMediaBrowserItemsHideSubTitle: true
+            searchMediaBrowserItemsSortTitle: false
+            searchMediaBrowserSearchLimit: 50
+            searchMediaBrowserSearchTypes:
+              - Albums
+              - Artists
+              - Playlists
+              - Tracks
+              - AudioBooks
+              - Shows
+              - Episodes
+            showFavBrowserTitle: >-
+              Show Favorites for {player.sp_user_display_name}
+              ({medialist.filteritemcount} items)
+            showFavBrowserSubTitle: click a tile item to play the content; click-hold for actions
+            showFavBrowserItemsPerRow: 4
+            showFavBrowserItemsHideTitle: false
+            showFavBrowserItemsHideSubTitle: true
+            showFavBrowserItemsSortTitle: true
+            trackFavBrowserTitle: >-
+              Track Favorites for {player.sp_user_display_name}
+              ({medialist.filteritemcount} items)
+            trackFavBrowserSubTitle: click a tile item to play the content; click-hold for actions
+            trackFavBrowserItemsPerRow: 4
+            trackFavBrowserItemsHideTitle: false
+            trackFavBrowserItemsHideSubTitle: false
+            trackFavBrowserItemsSortTitle: false
+            userPresetBrowserTitle: >-
+              User Presets for {player.sp_user_display_name}
+              ({medialist.filteritemcount} items)
+            userPresetBrowserSubTitle: click a tile item to play the content; click-hold for actions
+            userPresetBrowserItemsPerRow: 4
+            userPresetBrowserItemsHideTitle: false
+            userPresetBrowserItemsHideSubTitle: false
+            userPresets:
+              - name: Daily Mix 1
+                subtitle: Various Artists
+                image_url: >-
+                  https://dailymix-images.scdn.co/v2/img/ab6761610000e5ebcd3f796bd7ea49ed7615a550/1/en/default
+                uri: spotify:playlist:37i9dQZF1E39vTG3GurFPW
+                type: playlist
+              - name: My Track Favorites
+                subtitle: Shuffled
+                image_url: https://t.scdn.co/images/728ed47fc1674feb95f7ac20236eb6d7.jpeg
+                shuffle: true
+                type: trackfavorites
+            customImageUrls:
+              X_default: /local/images/spotifyplus_card_customimages/default.png
+              X_empty preset: /local/images/spotifyplus_card_customimages/empty_preset.png
+              X_Daily Mix 1: https://brands.home-assistant.io/spotifyplus/icon.png
+              X_playerBackground: /local/images/spotifyplus_card_customimages/playerBackground.png
+              X_playerIdleBackground: >-
+                /local/images/spotifyplus_card_customimages/playerIdleBackground.png
+              X_playerOffBackground: >-
+                /local/images/spotifyplus_card_customimages/playerOffBackground.png
+            sectionDefault: playlistfavorites
+            deviceDefaultId: Kitchen display
+            width: 80%
+          - type: custom:sonos-card
+            showNonSonosPlayers: true
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /dashboard-phone1/0
+                icon: mdi:track-light
+                label: Lighting
+              - url: /dashboard-phone1/hvac
+                icon: mdi:home-thermometer
+                label: HVAC
+                hold_action:
+                  action: navigate
+                  navigation_path: /config/devices/dashboard
+              - icon: mdi:account-music
+                label: Media
+                url: /dashboard-phone1/media
+              - icon: mdi:dots-circle
+                label: Other
+                url: /dashboard-phone1/ev
+              - icon: mdi:dots-horizontal
+                label: More
+                tap_action:
+                  action: open-popup
+                popup:
+                  - icon: mdi:cog
+                    url: /config/dashboard
+                  - icon: mdi:hammer
+                    url: /developer-tools/yaml
+                  - icon: mdi:power
+                    tap_action:
+                      action: call-service
+                      service: homeassistant.restart
+                      service_data: {}
+                      confirmation:
+                        text: Are you sure you want to restart Home Assistant?
+            mobile:
+              show_labels: true
+  - type: sections
+    max_columns: 4
+    title: Other
+    path: ev
+    sections:
+      - type: grid
+        cards:
+          - type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            entity: input_boolean.vacationmode
+            button_action: {}
+          - type: horizontal-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: button
+                button_type: switch
+                entity: script.clean_house_x2_with_roborock
+                show_state: true
+                show_last_changed: true
+                show_attribute: false
+                attribute: last_triggered
+                icon: mdi:robot-vacuum
+                button_action: {}
+                name: Clean House x2
+              - type: custom:bubble-card
+                card_type: button
+                button_type: switch
+                entity: script.roborock_kitchen_3x_clean
+                show_state: true
+                show_last_changed: true
+                show_attribute: false
+                attribute: last_triggered
+                icon: mdi:robot-vacuum
+                button_action: {}
+                name: Clean Kitchen x3
+          - type: custom:timer-bar-card
+            entity: timer.washing_machine
+            name: Washing Machine
+            icon: mdi:washing-machine
+            bar_width: 70%
+            bar_height: 12px
+            invert: true
+            bar_direction: rtl
+            show_end_time: true
+            mushroom:
+              layout: vertical
+              color: purple
+          - type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            sub_button:
+              main:
+                - entity: sensor.heated_blanket_power_1
+                  show_state: true
+                - entity: sensor.heated_blanket_energy_1
+                  show_state: true
+              bottom: []
+            entity: switch.heated_blanket
+            icon: mdi:heat-wave
+            show_state: true
+            show_last_changed: true
+            show_attribute: false
+            grid_options:
+              columns: 12
+              rows: auto
+          - type: custom:navbar-card
+            routes:
+              - url: /dashboard-phone1/0
+                icon: mdi:track-light
+                label: Lighting
+              - url: /dashboard-phone1/hvac
+                icon: mdi:home-thermometer
+                label: HVAC
+                hold_action:
+                  action: navigate
+                  navigation_path: /config/devices/dashboard
+              - icon: mdi:account-music
+                label: Media
+                url: /dashboard-phone1/media
+              - icon: mdi:dots-circle
+                label: Other
+                url: /dashboard-phone1/ev
+              - icon: mdi:dots-horizontal
+                label: More
+                tap_action:
+                  action: open-popup
+                popup:
+                  - icon: mdi:cog
+                    url: /config/dashboard
+                  - icon: mdi:hammer
+                    url: /developer-tools/yaml
+                  - icon: mdi:power
+                    tap_action:
+                      action: call-service
+                      service: homeassistant.restart
+                      service_data: {}
+                      confirmation:
+                        text: Are you sure you want to restart Home Assistant?
+            mobile:
+              show_labels: true
+          - type: custom:bubble-card
+            card_type: pop-up
+            hash: '#speaker_broadcast'
+            button_type: name
+            sub_button:
+              main: []
+              bottom: []
+            cards:
+              - type: custom:mini-media-player
+                name: Ollie Speaker
+                entity: media_player.ollie_s_speaker
+                volume_stateless: false
+                tts:
+                  platform: google_translate
+                  entity_id: media_player.ollie_s_speaker
+              - type: custom:mini-media-player
+                name: Bathroom
+                entity: media_player.hall_speaker_2
+                volume_stateless: false
+                tts:
+                  platform: google_translate
+                  entity_id: media_player.hall_speaker_2
+              - type: custom:mini-media-player
+                name: Whole House
+                entity: media_player.whole_house
+                volume_stateless: false
+                tts:
+                  platform: google_translate
+                  entity_id: media_player.whole_house
+              - type: custom:mini-media-player
+                name: Lounge
+                entity: media_player.unnamed_room
+                volume_stateless: false
+                tts:
+                  platform: google_translate
+                  entity_id: media_player.unnamed_room
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            name: Google Speak
+            tap_action:
+              action: perform-action
+              perform_action: ''
+            button_action:
+              tap_action:
+                action: navigate
+                navigation_path: '#speaker_broadcast'
+            entity: media_player.ava_s_bedroom_speaker
+            icon: mdi:broadcast
+          - type: custom:scheduler-card
+            default_editor: single
+            include:
+              - climate.kitchen
+          - type: tile
+            entity: switch.shield_tv
+            vertical: false
+            tap_action:
+              action: toggle
+            icon_tap_action:
+              action: more-info
+            features_position: bottom
+          - type: tile
+            entity: switch.ollie_laptop
+            vertical: false
+            tap_action:
+              action: toggle
+            icon_tap_action:
+              action: more-info
+            features_position: bottom
+          - type: tile
+            entity: switch.tcl_tv
+            vertical: false
+            tap_action:
+              action: toggle
+            icon_tap_action:
+              action: more-info
+            features_position: bottom
+          - type: tile
+            entity: switch.google_tv
+            vertical: false
+            tap_action:
+              action: toggle
+            icon_tap_action:
+              action: more-info
+            features_position: bottom
+          - type: tile
+            entity: switch.deck_tv
+            vertical: false
+            tap_action:
+              action: toggle
+            icon_tap_action:
+              action: more-info
+            features_position: bottom
+    cards: []
+  - type: sections
+    max_columns: 4
+    title: TV
+    path: tv
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: New section
+          - type: custom:sonos-card
+          - type: custom:mass-player-card
+            entities:
+              - media_player.lounge_2
