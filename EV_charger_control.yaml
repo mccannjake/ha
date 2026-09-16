@@ -241,8 +241,7 @@ actions:
                   - action: logbook.log
                     data:
                       name: Force Adjust Current
-                      message: Solar start - forcing adjust_current after 10s delay
-                  - delay: "00:00:10"
+                      message: Solar start - forcing adjust_current (script handles 10s delay)
                   - action: script.set_ev_charger_current_from_solar
                     data: {}
               - conditions:
@@ -273,8 +272,7 @@ actions:
                   - action: logbook.log
                     data:
                       name: Force Adjust Current
-                      message: Charger became ready - forcing adjust_current after 10s delay
-                  - delay: "00:00:10"
+                      message: Charger became ready - forcing adjust_current (script handles 10s delay)
                   - action: script.set_ev_charger_current_from_solar
                     data: {}
               - conditions:

@@ -1,40 +1,55 @@
-alias: Calculate EV Charger Current from Solar
+alias: Set EV Charger Current from Solar (Stable)
 description: >
-  Calculates the safe charging current based on available solar power.
-  Returns the calculated current and sets it on the charger if different from current setting.
+  Calculates solar-based charging current using net export and existing charger
+  load. Includes 10s stabilization delay, active grid-import throttling, and safety caps.
+mode: queued
+max: 3
 
+# Static variables evaluated immediately
 variables:
   voltage: 240
   min_current: 6
   max_current: 32
-  safety_margin_amps: 1
-  charger_power: "{{ states('sensor.230211289_power') | float(0) * 1000 }}"
-  charger_current: "{{ states('sensor.230211289_max_current') | float(0) | round(0) }}"
-  export_power: "{{ states('sensor.solar_export_average') | float(0) }}"
+  safety_margin_amps: 0
 
 sequence:
+  # 1. Stabilization Delay: Wait 10 seconds for the grid/inverter to settle 
+  # after the charger initially turns on or adjusts.
+  - delay: "00:00:10"
+  
+  # 2. Dynamic Variables: Evaluated AFTER the delay to ensure the math uses 
+  # real-time, stable power readings rather than a stale 10-second-old snapshot.
   - variables:
-      available_power: "{{ ((-1 * export_power) + charger_power) if export_power < 0 else charger_power }}"
-      raw: "{{ ((available_power / voltage) - safety_margin_amps) | round(0) }}"
-      safe_current: "{{ [min_current, [raw, max_current] | min] | max }}"
-  
+      charger_power: '{{ states(''sensor.230211289_power'') | float(0) * 1000 }}'
+      export_power: '{{ states(''sensor.solar_export_average'') | float(0) }}'
+      charger_current: '{{ states(''sensor.230211289_max_current'') | float(0) | round(0) }}'
+      
+      # Superior math: actively subtracts export_power (which is positive during grid import) 
+      # from the charger's current draw to safely throttle down during cloud cover.
+      available_power: >
+        {{ [charger_power - export_power, 0] | max }}
+      raw_current: '{{ (available_power / voltage) - safety_margin_amps }}'
+      target_current: '{{ [min_current, [raw_current, max_current] | min] | max | round(0) }}'
+      
+  # 3. Execution: Only send commands if the calculated current differs from the active current.
   - condition: template
-    value_template: "{{ safe_current != charger_current }}"
-  
+    value_template: '{{ target_current != charger_current }}'
+    
   - action: script.set_ev_charger_max_current
     data:
-      amps: "{{ safe_current }}"
-  
+      amps: '{{ target_current }}'
+      
   - action: logbook.log
     data:
       name: EV Charger
-      message: "Adjusted current - Solar mode ({{ charger_current }}A → {{ safe_current }}A from {{ available_power | round(0) }}W available)"
-  
+      message: >
+        Solar-adjusted current: {{ charger_current }}A → {{ target_current }}A
+        with {{ available_power | round(0) }}W available (export={{ export_power }}W)
+        
   - action: input_text.set_value
     target:
       entity_id: input_text.ev_charger_last_action
     data:
-      value: "Adjusted current - Solar mode ({{ charger_current }}A → {{ safe_current }}A from {{ available_power | round(0) }}W available)"
-
-mode: queued
-max: 3
+      value: >
+        Solar-adjusted current: {{ charger_current }}A → {{ target_current }}A
+        with {{ available_power | round(0) }}W available (export={{ export_power }}W)
