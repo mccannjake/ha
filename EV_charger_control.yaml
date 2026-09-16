@@ -1,28 +1,8 @@
 alias: EV Charger Smart Control (Final Robust)
-mode: restart
 description: >
   Automatically control EV charging based on solar export and/or electricity
   tariff, with full priority logic, stability windows, and defensive conditions.
-
-variables:
-  charger_state: "{{ states('sensor.230211289_charger_state') }}"
-  charger_current: "{{ states('sensor.230211289_max_current') | float(0) | round(0) }}"
-  use_solar: "{{ is_state('input_boolean.ev_solar_enable', 'on') }}"
-  use_tariff: "{{ is_state('input_boolean.ev_tariff_enable', 'on') }}"
-  export_power: "{{ states('sensor.solar_export_average') | float(0) }}"
-  tariff: "{{ states('sensor.import_tariff_rate') | float(1) }}"
-# Considering adding a priority mode variable for future use
-#  priority_mode: >
-#    {% if use_tariff and tariff <= 0.12 %}
-#      tariff
-#    {% elif use_solar %}
-#      solar
-#    {% else %}
-#      none
-#    {% endif %}
-
 triggers:
-  # Solar triggers (15 min stable)
   - trigger: numeric_state
     entity_id: sensor.solar_export_average
     below: -1600
@@ -34,8 +14,7 @@ triggers:
     for: "00:15:00"
     id: solar_stop
   - trigger: numeric_state
-    entity_id:
-      - sensor.solar_export_average
+    entity_id: sensor.solar_export_average
     above: -1600
     for:
       hours: 0
@@ -43,7 +22,6 @@ triggers:
       seconds: 0
       milliseconds: 0
     id: solar_stop_not_charging
-  # Tariff triggers (1 min stable to prevent rapid cycling)
   - trigger: numeric_state
     entity_id: sensor.import_tariff_rate
     below: 0.12
@@ -52,31 +30,58 @@ triggers:
     entity_id: sensor.import_tariff_rate
     above: 0.12
     id: tariff_stop
-  
-  # Charger becomes ready (standby → check if we should start)
   - trigger: state
     entity_id: sensor.230211289_charger_state
     to: standby
     id: charger_ready
-  
-  # Periodic adjustment (every 5 min)
   - trigger: time_pattern
     minutes: /5
     id: adjust_current
-  
-  # Mode toggle triggers (immediate response)
   - trigger: state
     entity_id:
       - input_boolean.ev_solar_enable
       - input_boolean.ev_tariff_enable
     id: adjust_current
+  # Defensive trigger: watches ONLY the solar export sensor
+  - trigger: state
+    entity_id:
+      - sensor.solar_export_average
+    to:
+      - unavailable
+      - unknown
+      - "null"
+      - "none"
+    id: telemetry_lost
 
 actions:
+  # Safety Interlock: Stop charging if solar export telemetry drops out
   - choose:
-      # Independent workflow for setting ev_solar_ready helper
+      - conditions:
+          - condition: template
+            value_template: "{{ not telemetry_ok or trigger.id == 'telemetry_lost' }}"
+          - condition: template
+            value_template: "{{ charger_state in ['charging', 'waiting'] }}"
+        sequence:
+          - action: beny_wifi.stop_charging
+            data:
+              device_id: 88c49aafe0e72ff92ca85a4f0657a018
+          - action: logbook.log
+            data:
+              name: EV Charger Safety
+              message: "Stopped charging: Solar export sensor reported offline/null."
+          - action: input_text.set_value
+            target:
+              entity_id: input_text.ev_charger_last_action
+            data:
+              value: "Stopped charging - Solar telemetry lost"
+
+  # Solar Flag Management
+  - choose:
       - conditions:
           - condition: trigger
             id: solar_start
+          - condition: template
+            value_template: "{{ telemetry_ok }}"
         sequence:
           - action: input_boolean.turn_on
             target:
@@ -84,8 +89,7 @@ actions:
           - action: logbook.log
             data:
               name: EV Solar Ready
-              message: "Solar export conditions met. Set ev_solar_ready to true."
-
+              message: Solar export conditions met. Set ev_solar_ready to true.
       - conditions:
           - condition: trigger
             id: solar_stop
@@ -96,11 +100,10 @@ actions:
           - action: logbook.log
             data:
               name: EV Solar Ready
-              message: "Solar export conditions no longer met. Set ev_solar_ready to false."
+              message: Solar export conditions no longer met. Set ev_solar_ready to false.
       - conditions:
           - condition: trigger
-            id:
-              - solar_stop_not_charging
+            id: solar_stop_not_charging
           - condition: template
             value_template: "{{ charger_state not in ['charging'] }}"
         sequence:
@@ -111,20 +114,17 @@ actions:
           - action: logbook.log
             data:
               name: EV Solar Ready
-              message: >-
-                Solar export conditions no longer met while not charging. Set
-                ev_solar_ready to false.
+              message: Solar export conditions no longer met while not charging. Set ev_solar_ready to false.
+
+  # Primary Charger Control Block
   - choose:
-      ####################################################
-      # 💲 Tariff Mode (takes priority when tariff is cheap)
-      ####################################################
       - conditions:
           - condition: template
-            value_template: "{{ use_tariff and (tariff <= 0.12 or trigger.id == 'tariff_stop') }}"
+            value_template: >-
+              {{ use_tariff and (tariff <= 0.12 or trigger.id == 'tariff_stop') }}
             alias: Tariff Mode Active & Tariff <= 0.12 OR Tariff Mode Active & Tariff Stop Triggered
         sequence:
           - choose:
-              # Start charging on cheap tariff
               - conditions:
                   - condition: trigger
                     id:
@@ -136,23 +136,19 @@ actions:
                 sequence:
                   - action: beny_wifi.start_charging
                     data:
-                      device_id: a9d83e66ef57dc66d600495b961d94cf
+                      device_id: 88c49aafe0e72ff92ca85a4f0657a018
                   - action: script.set_ev_charger_max_current
                     data:
                       amps: 32
                   - action: logbook.log
                     data:
                       name: EV Charger
-                      message: "Started charging - Tariff mode ({{ tariff }}/kWh @ 32A)"
+                      message: Started charging - Tariff mode ({{ tariff }}/kWh @ 32A)
                   - action: input_text.set_value
                     target:
                       entity_id: input_text.ev_charger_last_action
                     data:
-                      value: "Started charging - Tariff mode ({{ tariff }}/kWh @ 32A)"
-              
-              # Stop charging on expensive tariff
-              # Future enhancement: if solar enabled and available, switch to solar mode instead
-              # Can manually trigger with solar_start or charger_ready triggers
+                      value: Started charging - Tariff mode ({{ tariff }}/kWh @ 32A)
               - conditions:
                   - condition: trigger
                     id: tariff_stop
@@ -160,7 +156,6 @@ actions:
                     value_template: "{{ charger_state in ['charging', 'waiting'] }}"
                 sequence:
                   - choose:
-                      # Switch to solar mode if solar is ready
                       - conditions:
                           - condition: state
                             entity_id: input_boolean.ev_solar_ready
@@ -171,28 +166,25 @@ actions:
                           - action: logbook.log
                             data:
                               name: EV Charger
-                              message: "Switched from Tariff to Solar mode ({{ tariff }}/kWh → solar)"
+                              message: Switched from Tariff to Solar mode ({{ tariff }}/kWh → solar)
                           - action: input_text.set_value
                             target:
                               entity_id: input_text.ev_charger_last_action
                             data:
-                              value: "Switched from Tariff to Solar mode ({{ tariff }}/kWh → solar)"
-                    # Default: Stop charging if no solar available
+                              value: Switched from Tariff to Solar mode ({{ tariff }}/kWh → solar)
                     default:
                       - action: beny_wifi.stop_charging
                         data:
-                          device_id: a9d83e66ef57dc66d600495b961d94cf
+                          device_id: 88c49aafe0e72ff92ca85a4f0657a018
                       - action: logbook.log
                         data:
                           name: EV Charger
-                          message: "Stopped charging - Tariff too high ({{ tariff }}/kWh)"
+                          message: Stopped charging - Tariff too high ({{ tariff }}/kWh)
                       - action: input_text.set_value
                         target:
                           entity_id: input_text.ev_charger_last_action
                         data:
-                          value: "Stopped charging - Tariff too high ({{ tariff }}/kWh)"
-              
-              # Maintain full power during cheap tariff
+                          value: Stopped charging - Tariff too high ({{ tariff }}/kWh)
               - conditions:
                   - condition: trigger
                     id: adjust_current
@@ -207,87 +199,84 @@ actions:
                   - action: logbook.log
                     data:
                       name: EV Charger
-                      message: "Adjusted current - Tariff mode ({{ charger_current }}A → 32A @ {{ tariff }}/kWh)"
+                      message: >-
+                        Adjusted current - Tariff mode ({{ charger_current }}A → 32A @ {{ tariff }}/kWh)
                   - action: input_text.set_value
                     target:
                       entity_id: input_text.ev_charger_last_action
                     data:
-                      value: "Adjusted current - Tariff mode ({{ charger_current }}A → 32A @ {{ tariff }}/kWh)"
-
-      ####################################################
-      # ☀️ Solar Mode (runs when tariff mode not active)
-      ####################################################
+                      value: >-
+                        Adjusted current - Tariff mode ({{ charger_current }}A → 32A @ {{ tariff }}/kWh)
       - conditions:
           - condition: template
-            value_template: "{{ use_solar }}"
+            value_template: "{{ telemetry_ok and use_solar }}"
             alias: Solar Mode Active
         sequence:
           - choose:
-              # Start charging on solar export
               - conditions:
                   - condition: trigger
                     id:
                       - solar_start
                   - condition: template
-                    value_template: "{{ charger_state == 'standby' and is_state('input_boolean.ev_solar_ready', 'on') }}"
+                    value_template: >-
+                      {{ charger_state == 'standby' and is_state('input_boolean.ev_solar_ready', 'on') }}
                 sequence:
                   - action: beny_wifi.start_charging
                     data:
-                      device_id: a9d83e66ef57dc66d600495b961d94cf
+                      device_id: 88c49aafe0e72ff92ca85a4f0657a018
                   - action: logbook.log
                     data:
                       name: EV Charger
-                      message: "Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)"
+                      message: >-
+                        Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)
                   - action: input_text.set_value
                     target:
                       entity_id: input_text.ev_charger_last_action
                     data:
-                      value: "Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)"
-                  # ⏳ Wait briefly for sensors to stabilise, then trigger adjust_current
+                      value: >-
+                        Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)
                   - action: input_boolean.turn_on
                     target:
                       entity_id: input_boolean.ev_force_adjust_current
                   - action: logbook.log
                     data:
                       name: Force Adjust Current
-                      message: "Solar start - forcing adjust_current after 10s delay"
+                      message: Solar start - forcing adjust_current after 10s delay
                   - delay: "00:00:10"
                   - action: script.set_ev_charger_current_from_solar
                     data: {}
-
-              # Start charging on solar export when charger just became ready
               - conditions:
                   - condition: trigger
                     id:
                       - charger_ready
                   - condition: template
-                    value_template: "{{ charger_state == 'standby' and is_state('input_boolean.ev_solar_ready', 'on') }}"
+                    value_template: >-
+                      {{ charger_state == 'standby' and is_state('input_boolean.ev_solar_ready', 'on') }}
                 sequence:
                   - action: beny_wifi.start_charging
                     data:
-                      device_id: a9d83e66ef57dc66d600495b961d94cf
+                      device_id: 88c49aafe0e72ff92ca85a4f0657a018
                   - action: logbook.log
                     data:
                       name: EV Charger
-                      message: "Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)"
+                      message: >-
+                        Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)
                   - action: input_text.set_value
                     target:
                       entity_id: input_text.ev_charger_last_action
                     data:
-                      value: "Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)"
-                  # ⏳ Wait briefly for sensors to stabilise, then trigger adjust_current
+                      value: >-
+                        Started charging - Solar mode ({{ -1 * export_power | round(0) }}W export)
                   - action: input_boolean.turn_on
                     target:
                       entity_id: input_boolean.ev_force_adjust_current
                   - action: logbook.log
                     data:
                       name: Force Adjust Current
-                      message: "Charger became ready - forcing adjust_current after 10s delay"
+                      message: Charger became ready - forcing adjust_current after 10s delay
                   - delay: "00:00:10"
                   - action: script.set_ev_charger_current_from_solar
                     data: {}
-              
-              # Stop charging on grid import
               - conditions:
                   - condition: trigger
                     id: solar_stop
@@ -296,21 +285,21 @@ actions:
                 sequence:
                   - action: beny_wifi.stop_charging
                     data:
-                      device_id: a9d83e66ef57dc66d600495b961d94cf
+                      device_id: 88c49aafe0e72ff92ca85a4f0657a018
                   - action: logbook.log
                     data:
                       name: EV Charger
-                      message: "Stopped charging - Solar mode ({{ export_power | round(0) }}W import)"
+                      message: >-
+                        Stopped charging - Solar mode ({{ export_power | round(0) }}W import)
                   - action: input_text.set_value
                     target:
                       entity_id: input_text.ev_charger_last_action
                     data:
-                      value: "Stopped charging - Solar mode ({{ export_power | round(0) }}W import)"
-              
-              # Adjust current based on available solar
+                      value: >-
+                        Stopped charging - Solar mode ({{ export_power | round(0) }}W import)
               - conditions:
                   - condition: template
-                    value_template: >
+                    value_template: >-
                       {{ trigger.id == 'adjust_current' or is_state('input_boolean.ev_force_adjust_current', 'on') }}
                   - condition: template
                     value_template: "{{ charger_state == 'charging' }}"
@@ -323,3 +312,17 @@ actions:
                   - action: input_boolean.turn_off
                     target:
                       entity_id: input_boolean.ev_force_adjust_current
+
+mode: restart
+
+variables:
+  charger_state: "{{ states('sensor.230211289_charger_state') }}"
+  charger_current: "{{ states('sensor.230211289_max_current') | float(0) | round(0) }}"
+  use_solar: "{{ is_state('input_boolean.ev_solar_enable', 'on') }}"
+  use_tariff: "{{ is_state('input_boolean.ev_tariff_enable', 'on') }}"
+  export_raw: "{{ states('sensor.solar_export_average') }}"
+  tariff: "{{ states('sensor.import_tariff_rate') | float(1) }}"
+  # Evaluates strictly to true ONLY when solar_export_average is valid
+  telemetry_ok: >-
+    {{ export_raw not in ['unavailable', 'unknown', 'null', 'none', None] }}
+  export_power: "{{ export_raw | float(0) }}"
