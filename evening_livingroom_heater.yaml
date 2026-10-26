@@ -1,0 +1,46 @@
+alias: Evening livingroom heater
+description: Optimized evening heating with a 3-hour cool-down safety check
+triggers:
+  - trigger: time
+    at: "18:00:00"
+  - trigger: numeric_state
+    entity_id: sensor.kitchen_temp
+    below: 20.5
+  - trigger: numeric_state
+    entity_id: zone.home
+    above: 0
+  - trigger: state
+    entity_id: input_boolean.vacationmode
+    to: "off"
+conditions:
+  - condition: time
+    after: "18:00:00"
+    before: "20:30:00"
+  - condition: state
+    entity_id: input_boolean.vacationmode
+    state: "off"
+  - condition: numeric_state
+    entity_id: zone.home
+    above: 0
+  - condition: numeric_state
+    entity_id: sensor.largs_north_temp
+    below: 16
+  - condition: numeric_state
+    entity_id: sensor.kitchen_temp
+    below: 20.5
+  - condition: state
+    entity_id: climate.kitchen
+    state: "off"
+  - condition: template
+    value_template: >-
+      {{ (now() - states.climate.kitchen.last_changed).total_seconds() > 10800
+      }}
+actions:
+  - action: sensibo.full_state
+    data:
+      mode: heat
+      target_temperature: 21
+      fan_mode: high
+    target:
+      area_id: kitchen
+mode: single
